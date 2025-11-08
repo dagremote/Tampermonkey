@@ -1,0 +1,111 @@
+*** The completed script - paste into a new tampermonkey script in the Tampermonkey dashboard. Remove the initial code a new script starts with and only use what is shown below.
+
+// ==UserScript==
+// u/name         Gemini Prompt Pulldown v1.0
+// u/namespace    http://tampermonkey.net/
+// u/version      2.6
+// u/description  Adds a dropdown menu to inject text into the Gemini chat bar.
+// u/author       You
+// u/match        https://*.workers.dev/*
+// u/match        https://gemini.google.com/*
+// u/grant        GM_addStyle
+// ==/UserScript==
+
+(function() {
+    // 'use strict'; // Kept commented out to prevent script from failing
+
+    // --- 1. DEFINE YOUR ITEMS HERE ---
+    const itemsToCopy = {
+        "Select a prompt...": "", // Renamed placeholder
+        "Yes": "Yes",
+        "No": "No",
+        "1-Personalities list": "Personalities",
+        "2-Default Personality": "Default Personality",
+        "3-Charming Personality": "Charming Personality",
+        "4-Candid Personality": "Candid Personality",
+        "5-Simplification Personality": "Simplification Personality",
+        "6-Narrative  Personality": "Narrative Personality",
+        "7-Academic Personality": "Academic Personality",
+        "8-Educational Personality": "Educational Personality",
+        "9-Creative Personality": "Creative Personality",
+        "10-Rigor Personality": "Rigor Personality",
+        "11-Challenging Personality": "Challenging Personality",
+        "12-Witty Personality": "Witty Personality",
+        "13-Factory Personality": "Factory Personality"
+    };
+    // ---------------------------------
+
+    // --- Function to create and inject the UI ---
+    function injectUI() {
+        // Stop if the element already exists
+        if (document.getElementById('tm-clipboard-select')) {
+            return;
+        }
+
+        // --- 3. CREATE THE ELEMENTS ---
+        let select = document.createElement('select');
+        select.id = 'tm-clipboard-select';
+
+        for (const [key, value] of Object.entries(itemsToCopy)) {
+            let option = document.createElement('option');
+            option.value = value;
+            option.text = key;
+            select.appendChild(option);
+        }
+
+        // Add to the main document body
+        document.body.appendChild(select);
+
+        // --- 4. ADD STYLING (POSITIONING) ---
+        // *** KEY CHANGE: Position fixed to the BOTTOM-RIGHT of the screen ***
+        // This will place it just ABOVE the chat prompt area.
+        GM_addStyle(`
+            #tm-clipboard-select {
+                position: fixed;
+                bottom: 100px;  /* Sits ~100px from the bottom, just above the chat bar */
+                right: 25px;   /* Aligns to the right side of the chat window */
+                z-index: 99999;
+
+                padding: 5px;
+                background-color: Canvas;
+                color: CanvasText;
+                border: 1px solid ButtonBorder;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+        `);
+
+        // --- 5. ADD THE 'INJECT' FUNCTIONALITY ---
+        // (This logic is correct and unchanged)
+        select.addEventListener('change', function() {
+            const selectedValue = this.value;
+
+            if (selectedValue) {
+                const chatBox = document.querySelector('div[role="textbox"]');
+                if (chatBox) {
+                    chatBox.textContent = selectedValue;
+                    chatBox.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                    chatBox.focus();
+                }
+                this.selectedIndex = 0;
+            }
+        });
+    }
+
+    // --- 6. PERSISTENTLY CHECK FOR UI ---
+
+    // *** KEY CHANGE: Reverted to the anchor that we know WORKS ***
+    const anchorElementSelector = 'button[aria-label="Send message"]';
+
+    setInterval(() => {
+        const anchorElement = document.querySelector(anchorElementSelector);
+        const uiExists = document.getElementById('tm-clipboard-select');
+
+        // If the "Send" button exists and the pulldown doesn't, inject it.
+        if (anchorElement && !uiExists) {
+            console.log("Tampermonkey: Send button detected, injecting menu.");
+            injectUI();
+        }
+    }, 500);
+
+})();
