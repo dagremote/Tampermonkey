@@ -1,4 +1,4 @@
-*** The completed script - paste into a new tampermonkey script in the Tampermonkey dashboard. Remove the initial code a new script starts with and only use what is shown below.
+*** Remove this line when pasting into Tampermonkery. Paste all text below into a new tampermonkey script in the Tampermonkey dashboard. R
 
 // ==UserScript==
 // u/name         Gemini Prompt Pulldown v1.0
